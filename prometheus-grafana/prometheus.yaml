@@ -1,0 +1,114 @@
+alertmanager:
+  persistentVolume:
+    size: 100Gi
+
+server:
+  persistentVolume:
+    size: 100Gi
+
+## prometheus ConfigMap entries
+serverFiles:
+  alerts:
+    groups:
+      - name: k8s.rules
+        rules:
+        - alert: InstanceDown
+          expr: up == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.'
+            summary: 'Instance {{ $labels.instance }} down'
+
+        - alert: PodNotReady
+          expr: kube_pod_container_status_ready == 0
+          for: 5m
+          labels:
+            severity: error
+          annotations:
+            description: 'Pod {{ $labels.pod }} of {{ $labels.container }} service in {{ $labels.namespace }} namespace has been not ready for more than 5 minutes.'
+            summary: 'Pod {{ $labels.pod }} not ready'
+
+        - alert: KubeletTooManyPods
+          expr: kubelet_running_pod_count > 40
+          labels:
+            severity: warning
+          annotations:
+            description: 'Kubelet {{ $labels.instance }} is running {{ $value }} Pods, close to the limit of 60.'
+            summary: 'Pod Limit Approaching'
+            url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubelettoomanypods
+
+## alertmanager ConfigMap entries
+alertmanagerFiles:
+  alertmanager.yml:
+    global:
+      slack_api_url: ''
+
+    receivers:
+      - name: default-receiver
+        slack_configs:
+         - channel: '#my-slack'
+           send_resolved: true
+           title: Default Alerts
+           title_link: http://prometheus-server.monitoring/targets
+           text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+      
+      - name: critical-receiver
+        slack_configs:
+         - channel: '#my-slack'
+           send_resolved: true
+           title_link: http://prometheus-server.monitoring/targets
+           title: "{{ .CommonLabels.alertname }}"
+           color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+           fields:
+           - title: "{{ .CommonAnnotations.summary }}"
+             value: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+      
+      - name: error-receiver
+        slack_configs:
+         - channel: '#my-slack'
+           send_resolved: true
+           title_link: http://prometheus-server.monitoring/targets
+           title: "{{ .CommonLabels.alertname }}"
+           color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+           fields:
+           - title: "{{ .CommonAnnotations.summary }}"
+             value: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+
+      - name: warning-receiver
+        slack_configs:
+         - channel: '#my-slack'
+           send_resolved: true
+           title: "{{ .CommonLabels.alertname }}"
+           title_link: "{{ .CommonAnnotations.url }}"
+           color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+           fields:
+           - title: "{{ .CommonAnnotations.summary }}"
+             value: "{{ .CommonAnnotations.description }}"
+
+    route:
+      group_wait: 10s
+      group_interval: 5m
+      receiver: default-receiver
+      repeat_interval: 3h
+      # routes:
+      # All alerts with service=mysql or service=cassandra
+      # are dispatched to the service issues.
+      # - receiver: 'service issues'
+      #   group_wait: 10s
+      #   match_re:
+      #     service: mysql|cassandra
+      routes:
+      - receiver: 'critical-receiver'
+        match:
+          severity: critical
+      - receiver: 'error-receiver'
+        match:
+          severity: error
+      - receiver: 'warning-receiver'
+        match:
+          severity: warning
+      # - receiver: deadmansswitch
+      #   match:
+      #     alertname: DeadMansSwitch

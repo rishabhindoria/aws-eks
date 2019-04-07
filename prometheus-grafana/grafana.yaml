@@ -1,0 +1,29 @@
+adminUser: <YOUR USERNAME TO LOGIN FROM WEB>
+adminPassword: <YOUR PASSWORD TO LOGIN FROM WEB>
+  
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 100Gi
+
+datasources:
+ datasources.yaml:
+   apiVersion: 1
+   datasources:
+   - name: Prometheus
+     type: prometheus
+     url: http://prometheus-server.monitoring.svc.cluster.local
+     access: proxy
+     isDefault: true
+
+grafana.ini:
+  server:
+    root_url: http://grafana.monitoring
+  external_image_storage:
+    provider: s3
+  external_image_storage.s3: # for grafana slack alerts with real-time images
+    bucket: <YOUR S3 BUCKET NAME>
+    region: <YOUR REGION>
+    access_key: <ACCESS KEY>
+    secret_key: <SECRET KEY>

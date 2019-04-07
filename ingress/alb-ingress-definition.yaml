@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: app-router
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/tags: Environment=<YOUR ENV>
+    alb.ingress.kubernetes.io/certificate-arn: <YOUR CERTIFICATE ARN>
+    alb.ingress.kubernetes.io/security-groups: <YOUR SGs IDS COMMA SEPARATED eg (sg-xxxxxxxxx, sg-xxxxxxxxxx) TOTAL 2 ONLY! -> 1 for ALB, 1 for EC2 WORKERS IN PRIVATE SUBNET>
+    alb.ingress.kubernetes.io/subnets: <YOUR PUBLIC SUBNETS IDS COMMA SEPARATED in EKS VPC-> eg (subnet-xxxxxxxxx, subnet-xxxxxxxxxx)>
+spec:
+  rules:
+  - host: <YOUR URL 1>
+    http:
+      paths:
+      - path: /**
+        backend:
+          serviceName: <SERVICE NAME>
+          servicePort: <SERVICE PORT>
+  - host: <YOUR URL 2>
+    http:
+      paths:
+      - path: /**
+        backend:
+          serviceName: <SERVICE NAME>
+          servicePort: <SERVICE PORT>
+  - host: <YOUR URL 3>
+    http:
+      paths:
+      - path: /**
+        backend:
+          serviceName: <SERVICE NAME>
+          servicePort: <SERVICE PORT>

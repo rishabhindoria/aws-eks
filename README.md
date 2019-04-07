@@ -1,4 +1,4 @@
-Deploy a full AWS EKS cluster with Terraform
+Deploy a full AWS EKS cluster with Terraform along with Autoscaled Gitlab Runners, Fluentd, Prometheus, Grafana Dashboards. Use the power of open source and give back to community :)
 
 ## What resources are created
 
@@ -82,6 +82,44 @@ You can destroy this cluster and vpc entirely by running:
 ```bash
 terraform destroy
 ```
+
+.
+├── README.md
+├── autoscaling-kube-gitlab-runner
+│   ├── README.md
+│   └── gitlab-runner.yaml
+├── fluentd
+│   ├── README.md
+│   └── fluent.yaml
+├── ingress
+│   ├── README.md
+│   ├── alb-ingress-controller.yaml
+│   ├── alb-ingress-definition.yaml
+│   └── alb-rbac-role.yaml
+├── openvpn
+│   ├── README.md
+│   ├── openvpn-pv-claim.yaml
+│   └── openvpn.yaml
+├── prometheus-grafana
+│   ├── README.md
+│   ├── dashboard.json
+│   ├── grafana.yaml
+│   └── prometheus.yaml
+└── terraform-eks
+    ├── README.md
+    ├── main.tf
+    ├── modules
+    │   ├── eks
+    │   │   ├── eks_ingress.permissions.json
+    │   │   ├── main.tf
+    │   │   └── outputs.tf
+    │   └── vpc
+    │       ├── main.tf
+    │       ├── outputs.tf
+    │       └── variables.tf
+    ├── outputs.tf
+    └── variables.tf
+
 
 ## Helpful links
 

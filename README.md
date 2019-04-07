@@ -83,6 +83,7 @@ You can destroy this cluster and vpc entirely by running:
 terraform destroy
 ```
 
+```
 .
 ├── README.md
 ├── autoscaling-kube-gitlab-runner
@@ -119,7 +120,7 @@ terraform destroy
     │       └── variables.tf
     ├── outputs.tf
     └── variables.tf
-
+```
 
 ## Helpful links
 
